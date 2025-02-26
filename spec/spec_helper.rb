@@ -26,10 +26,13 @@ RSpec.configure do |config|
     Module.new do
       def migrate(migration, version = nil)
         migration = migration.new unless migration.is_a?(ActiveRecord::Migration)
-        file_name = Object.const_source_location(migration.class.name).first.split("/").last
-        version_from_file = file_name.split("_").first.to_i
-        migration.version = version || version_from_file
+        migration.version = version || version_number_for_migration(migration)
         ActiveRecord::Migrator.new(:up, [migration], ActiveRecord::SchemaMigration, migration.version).migrate
+      end
+
+      def version_number_for_migration(migration)
+        file_name = Object.const_source_location(migration.class.name).first.split("/").last
+        file_name.split("/").last.split("_").first.to_i
       end
     end
   )
