@@ -19,6 +19,12 @@ module BackgroundMigrations
         prepend(UpMethodHijacker)
       end
     end
+
+    def method_added(method)
+      return unless method == :change
+
+      raise "BackgroundMigrations cannot define the change method, please use `up` and `down` instead"
+    end
   end
 
   module UpMethodHijacker

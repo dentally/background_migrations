@@ -27,4 +27,22 @@ RSpec.describe BackgroundMigrations do
     migrate(ManuallyRunBackgroundMigration)
     expect(BackgroundMigrations::PendingMigration.where(version: 3).count).to eq(1)
   end
+
+  it "breaks if a BackgroundMigration defines the change method" do
+    create_breaking_migration = proc do
+      Class.new(TestMigration) do
+        include BackgroundMigrations
+
+        background_migration { false }
+
+        def change
+          create_table :breaking_migrations do |t|
+            t.string :name
+          end
+        end
+      end
+    end
+    expect { create_breaking_migration.call }.to raise_error("BackgroundMigrations cannot define the change method, please use `up` and `down` instead")
+    expect(ActiveRecord::Base.connection.table_exists?(:breaking_migrations)).to be false
+  end
 end
