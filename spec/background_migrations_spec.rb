@@ -5,7 +5,8 @@ RSpec.describe BackgroundMigrations do
     expect(BackgroundMigrations::VERSION).not_to be nil
   end
 
-  it "does something useful" do
-    expect(false).to eq(true)
+  it "runs a normal migration normally" do
+    migrate(NormalMigration)
+    expect(ActiveRecord::Base.connection.table_exists?(:normal_migrations)).to be true
   end
 end
