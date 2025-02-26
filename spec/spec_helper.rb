@@ -6,6 +6,8 @@ require "background_migrations"
 TestMigration = ActiveRecord::Migration[ActiveRecord.version.to_s.to_f]
 Dir.glob(File.join(File.dirname(__FILE__), "fixtures", "db", "*.rb")).each { |f| puts "Requiring #{f}"; require f }
 
+BackgroundMigrations.logger = Logger.new(STDOUT)
+
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"
