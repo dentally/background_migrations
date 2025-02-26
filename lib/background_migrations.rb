@@ -13,13 +13,15 @@ module BackgroundMigrations
 
   module ClassMethods
     def background_migration(&block)
-
+      if block.call
+        prepend(UpMethodHijacker)
+      end
     end
   end
 
-  # module UpMethodHijacker
-  #   def up(*args)
+  module UpMethodHijacker
+    def up(*args)
 
-  #   end
-  # end
+    end
+  end
 end

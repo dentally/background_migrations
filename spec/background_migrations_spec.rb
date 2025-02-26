@@ -16,4 +16,10 @@ RSpec.describe BackgroundMigrations do
     expect(ActiveRecord::Base.connection.table_exists?(:automatically_run_background_migrations)).to be true
     expect(ActiveRecord::SchemaMigration.where(version: 2).count).to eq(1)
   end
+
+  it "marks background migrations as run but doesn't run the actual migration" do
+    migrate(ManuallyRunBackgroundMigration)
+    expect(ActiveRecord::Base.connection.table_exists?(:manually_run_background_migrations)).to be false
+    expect(ActiveRecord::SchemaMigration.where(version: 3).count).to eq(1)
+  end
 end
