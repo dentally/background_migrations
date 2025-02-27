@@ -4,6 +4,7 @@ require "logger"
 require "active_support"
 require "active_record"
 require_relative "background_migrations/version"
+require_relative "background_migrations/railtie" if defined?(Rails::Railtie)
 
 module BackgroundMigrations
   class Error < StandardError; end
@@ -23,7 +24,7 @@ module BackgroundMigrations
 
     raise "No migrations_dir set" unless defined?(Rails)
 
-    @migrations_dir = Rails.root + "/db/migrate"
+    @migrations_dir = Rails.root.join("db", "migrate")
   end
 
   def self.migrations_dir=(dir)
