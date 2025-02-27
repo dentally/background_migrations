@@ -10,11 +10,25 @@ module BackgroundMigrations
 
   extend ActiveSupport::Concern
 
-  cattr_accessor :logger
-  self.logger = Object.const_defined?(:Rails) ? Rails.logger : Logger.new(nil)
+  def self.logger
+    @logger ||= defined?(Rails) ? Rails.logger : Logger.new(nil)
+  end
 
-  cattr_accessor :migrations_dir
-  self.migrations_dir = Rails.root + "/db/migrate" if Object.const_defined?(:Rails)
+  def self.logger=(l)
+    @logger = l
+  end
+
+  def self.migrations_dir
+    return @migrations_dir if @migrations_dir
+
+    raise "No migrations_dir set" unless defined?(Rails)
+
+    @migrations_dir = Rails.root + "/db/migrate"
+  end
+
+  def self.migrations_dir=(dir)
+    @migrations_dir = dir
+  end
 
   module ClassMethods
     def background_migration(&block)
