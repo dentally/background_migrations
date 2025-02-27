@@ -22,7 +22,7 @@ RSpec.configure do |config|
 
   config.before(:each) do
     ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-    ActiveRecord::SchemaMigration.create_table
+    schema_migration.create_table
   end
 
   config.include(
@@ -30,12 +30,36 @@ RSpec.configure do |config|
       def migrate(migration, version = nil)
         migration = migration.new unless migration.is_a?(ActiveRecord::Migration)
         migration.version = version || version_number_for_migration(migration)
-        ActiveRecord::Migrator.new(:up, [migration], ActiveRecord::SchemaMigration, migration.version).migrate
+        if ActiveRecord::VERSION::STRING.to_f >= 7.2
+          ActiveRecord::Migrator.new(:up, [migration], schema_migration, ActiveRecord::Base.connection_pool.internal_metadata, migration.version).migrate
+        elsif ActiveRecord::VERSION::STRING.to_f >= 7.1
+          ActiveRecord::Migrator.new(:up, [migration], schema_migration, ActiveRecord::Base.connection.internal_metadata, migration.version).migrate
+        else
+          ActiveRecord::Migrator.new(:up, [migration], schema_migration, migration.version).migrate
+        end
+      end
+
+      def schema_migration
+        if ActiveRecord::VERSION::STRING.to_f >= 7.2
+          ActiveRecord::Base.connection_pool.schema_migration
+        elsif ActiveRecord::VERSION::STRING.to_f >= 7.1
+          ActiveRecord::Base.connection.schema_migration
+        else
+          ActiveRecord::SchemaMigration
+        end
       end
 
       def version_number_for_migration(migration)
         file_name = Object.const_source_location(migration.class.name).first.split("/").last
         file_name.split("/").last.split("_").first.to_i
+      end
+
+      def version_exists?(version)
+        if ActiveRecord::VERSION::STRING.to_f >= 7.1
+          schema_migration.versions.include?(version.to_s)
+        else
+          schema_migration.where(version: version).exists?
+        end
       end
     end
   )
