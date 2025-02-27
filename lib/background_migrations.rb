@@ -82,7 +82,7 @@ module BackgroundMigrations
 
       BackgroundMigrations.logger.info("Skipping backgrounded migration #{self.class.name}")
       PendingMigration.create_table
-      PendingMigration.create!(version: version)
+      PendingMigration.upsert({ version: version }, unique_by: :version)
     end
   end
 
@@ -93,7 +93,7 @@ module BackgroundMigrations
       return if connection.table_exists?(table_name)
 
       connection.create_table(table_name) do |t|
-        t.string :version, null: false
+        t.string :version, null: false, index: { unique: true }
       end
     end
   end
