@@ -21,6 +21,7 @@ module BackgroundMigrations
     end
 
     def method_added(method)
+      super
       return unless method == :change
 
       raise "BackgroundMigrations cannot define the change method, please use `up` and `down` instead"
