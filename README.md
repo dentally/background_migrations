@@ -1,24 +1,41 @@
 # BackgroundMigrations
 
-TODO: Delete this and the text below, and describe your gem
+Manage the manual running of migrations
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/background_migrations`. To experiment with that code, run `bin/console` for an interactive prompt.
+Sometimes migrations have to be run on certain environments at certain times to avoid busy periods. This gem adds functionality to allow migrations to be added to the codebase and then actually executed on each environment manually. The migration will appear as normal in the schema_migrations table and will be reflected in development.
+
+It's recommended that the time between merging the migration and running it on every environment is kept as short as possible, to avoid accidentally releasing new code that relies on the migration having run in every environment.
 
 ## Installation
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+In your Gemfile:
 
-Install the gem and add to the application's Gemfile by executing:
-
-    $ bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
-
-If bundler is not being used to manage dependencies, install the gem by executing:
-
-    $ gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+```
+gem "background_migrations", git: "https://github.com/dentally/background_migrations"
+```
 
 ## Usage
 
-TODO: Write usage instructions here
+Within a migration:
+
+```
+class MyMigration < ActiveRecord::Migration[7.0]
+  include BackgroundMigrations
+
+  background_migration { Rails.env.production? }
+```
+
+This will run the migration as normal in every Rails environment except production. On production, it will treat the migration as run, add it to schema_migrations and also add it to the pending background migrations list. You can view the list of pending migrations using:
+
+```
+bundle exec rake background_migrations:list_pending_migrations
+```
+
+You can run a pending migration using:
+
+```
+bundle exec rake background_migrations:run_pending_migration[VERSION_NUMBER]
+```
 
 ## Development
 
