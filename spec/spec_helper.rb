@@ -7,6 +7,7 @@ TestMigration = ActiveRecord::Migration[ActiveRecord.version.to_s.to_f]
 Dir.glob(File.join(File.dirname(__FILE__), "fixtures", "db", "*.rb")).each { |f| puts "Requiring #{f}"; require f }
 
 BackgroundMigrations.logger = Logger.new(STDOUT)
+BackgroundMigrations.migrations_dir = File.join(File.dirname(__FILE__), "fixtures", "db")
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

@@ -45,4 +45,31 @@ RSpec.describe BackgroundMigrations do
     expect { create_breaking_migration.call }.to raise_error("BackgroundMigrations cannot define the change method, please use `up` and `down` instead")
     expect(ActiveRecord::Base.connection.table_exists?(:breaking_migrations)).to be false
   end
+
+  describe "Runner" do
+    it "runs a pending migration" do
+      migrate(ManuallyRunBackgroundMigration)
+      expect(ActiveRecord::Base.connection.table_exists?(:manually_run_background_migrations)).to be false
+      BackgroundMigrations::Runner.run("3")
+      expect(ActiveRecord::Base.connection.table_exists?(:manually_run_background_migrations)).to be true
+    end
+
+    it "clears the migration from the pending migrations table" do
+      migrate(ManuallyRunBackgroundMigration)
+      expect(BackgroundMigrations::PendingMigration.where(version: 3).count).to eq(1)
+      BackgroundMigrations::Runner.run("3")
+      expect(BackgroundMigrations::PendingMigration.where(version: 3).count).to eq(0)
+    end
+
+    it "doesn't run the background migration if it's not pending" do
+      expect { BackgroundMigrations::Runner.run("3") }.to raise_error("No pending background migration found for 3")
+    end
+
+    it "ensure the runner isn't running after it succeeds" do
+      migrate(ManuallyRunBackgroundMigration)
+      expect(BackgroundMigrations::Runner.running).to be false
+      BackgroundMigrations::Runner.run("3")
+      expect(BackgroundMigrations::Runner.running).to be false
+    end
+  end
 end

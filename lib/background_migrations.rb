@@ -13,6 +13,9 @@ module BackgroundMigrations
   cattr_accessor :logger
   self.logger = Logger.new(nil)
 
+  cattr_accessor :migrations_dir
+  self.migrations_dir = Rails.root + "/db/migrate" if Object.const_defined?(:Rails)
+
   module ClassMethods
     def background_migration(&block)
       if block.call
@@ -28,8 +31,40 @@ module BackgroundMigrations
     end
   end
 
+  class Runner
+    cattr_accessor :running
+    self.running = false
+
+    def self.run(version)
+      self.running = true
+      version = version.to_s
+      raise "Timestamp must be a number" unless version.match?(/^\d+$/)
+      raise "No migration_dir set" unless BackgroundMigrations.migrations_dir
+
+      file_names = Dir.foreach(BackgroundMigrations.migrations_dir).select { |f| f.match?(/^#{version}_/) }
+      raise "No migration found for version #{version}" if file_names.empty?
+      raise "Multiple migrations found for version #{version}" if file_names.size > 1
+
+      PendingMigration.create_table
+      pending_migration = PendingMigration.find_by(version: version)
+      raise "No pending background migration found for #{version}" unless pending_migration
+
+      file_name = File.basename(file_names.first, ".rb")
+      klass_name = file_name.sub(/\d+_/, "").camelize
+
+      require "#{BackgroundMigrations.migrations_dir}/#{file_name}"
+      klass = klass_name.constantize
+      klass.new.migrate(:up)
+      pending_migration.destroy!
+    ensure
+      self.running = false
+    end
+  end
+
   module UpMethodHijacker
     def up(*args)
+      return super if Runner.running
+
       BackgroundMigrations.logger.info("Skipping backgrounded migration #{self.class.name}")
       PendingMigration.create_table
       PendingMigration.create!(version: version)
