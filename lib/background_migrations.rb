@@ -92,8 +92,8 @@ module BackgroundMigrations
     def self.create_table
       return if connection.table_exists?(table_name)
 
-      connection.create_table(table_name) do |t|
-        t.string :version, null: false, index: { unique: true }
+      connection.create_table(table_name, id: false) do |t|
+        t.string :version, null: false, index: { unique: true }, primary_key: true
       end
     end
   end
