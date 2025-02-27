@@ -11,7 +11,7 @@ module BackgroundMigrations
   extend ActiveSupport::Concern
 
   cattr_accessor :logger
-  self.logger = Logger.new(nil)
+  self.logger = Object.const_defined?(:Rails) ? Rails.logger : Logger.new(nil)
 
   cattr_accessor :migrations_dir
   self.migrations_dir = Rails.root + "/db/migrate" if Object.const_defined?(:Rails)
