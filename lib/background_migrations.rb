@@ -87,7 +87,7 @@ module BackgroundMigrations
   end
 
   class PendingMigration < ActiveRecord::Base
-    self.table_name = "background_migrations_pending"
+    self.table_name = "background_migrations_pending_migrations"
 
     def self.create_table
       return if connection.table_exists?(table_name)
