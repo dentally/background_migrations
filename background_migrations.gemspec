@@ -38,7 +38,7 @@ Gem::Specification.new do |spec|
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html
 
-  spec.add_dependency "activerecord", "~> 7.0.8.5"
+  spec.add_dependency "activerecord", ">= 7.0"
 
   spec.add_development_dependency "pry"
   spec.add_development_dependency "sqlite3", "~> 1.4"

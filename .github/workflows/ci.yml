@@ -9,9 +9,17 @@ jobs:
     name: Ruby ${{ matrix.ruby }}
     strategy:
       matrix:
-        ruby:
-          - '3.3.4'
-
+        include:
+          - ruby: '3.3.4'
+            gemfile: 'Gemfile'
+          - ruby: '3.3.4'
+            gemfile: 'gemfiles/activerecord70.gemfile'
+          - ruby: '3.3.4'
+            gemfile: 'gemfiles/activerecord71.gemfile'
+          - ruby: '3.3.4'
+            gemfile: 'gemfiles/activerecord72.gemfile'
+    env:
+      BUNDLE_GEMFILE: ${{ matrix.gemfile }}
     steps:
     - uses: actions/checkout@v4
     - name: Set up Ruby
