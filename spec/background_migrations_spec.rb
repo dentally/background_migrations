@@ -80,4 +80,15 @@ RSpec.describe BackgroundMigrations do
       expect(BackgroundMigrations::Runner.running).to be false
     end
   end
+
+  describe "PendingMigration" do
+    describe ".print_pending_migrations" do
+      it "prints all pending migrations" do
+        migrate(ManuallyRunBackgroundMigration)
+        io = StringIO.new
+        BackgroundMigrations::PendingMigration.print_pending_migrations(io)
+        expect(io.string).to eq("3 - 3_manually_run_background_migration.rb\n")
+      end
+    end
+  end
 end

@@ -96,5 +96,12 @@ module BackgroundMigrations
         t.string :version, null: false, index: { unique: true }, primary_key: true
       end
     end
+
+    def self.print_pending_migrations(io)
+      all.pluck(:version).each do |version|
+        migration_file = Dir.glob("#{BackgroundMigrations.migrations_dir}/#{version}_*.rb").first.split("/").last
+        io.puts "#{version} - #{migration_file}" if migration_file
+      end
+    end
   end
 end

@@ -2,7 +2,7 @@
 namespace :background_migrations do
   desc "List all pending background migrations"
   task list_pending_migrations: :environment do
-    puts BackgroundMigrations::PendingMigration.all.pluck(:version)
+    BackgroundMigrations::PendingMigration.print_pending_migrations(STDOUT)
   end
 
   desc "Run pending background migration"
