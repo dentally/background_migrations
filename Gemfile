@@ -5,7 +5,7 @@ source "https://rubygems.org"
 # Specify your gem's dependencies in background_migrations.gemspec
 gemspec
 
-gem "activerecord", "~> 8.0.0"
+gem "activerecord", "~> 8.1.3"
 gem "sqlite3", ">= 2.1"
 
 gem "rake", "~> 13.0"
