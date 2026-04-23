@@ -60,7 +60,6 @@ module BackgroundMigrations
       raise "No migration found for version #{version}" if file_names.empty?
       raise "Multiple migrations found for version #{version}" if file_names.size > 1
 
-      PendingMigration.create_table
       pending_migration = PendingMigration.find_by(version: version)
       raise "No pending background migration found for #{version}" unless pending_migration
 
@@ -81,20 +80,11 @@ module BackgroundMigrations
       return super if Runner.running
 
       BackgroundMigrations.logger.info("Skipping backgrounded migration #{self.class.name}")
-      PendingMigration.create_table
       PendingMigration.upsert({ version: version }, unique_by: :version)
     end
   end
 
   class PendingMigration < ActiveRecord::Base
     self.table_name = "background_migrations_pending_migrations"
-
-    def self.create_table
-      return if connection.table_exists?(table_name)
-
-      connection.create_table(table_name, id: false) do |t|
-        t.string :version, null: false, index: { unique: true }, primary_key: true
-      end
-    end
   end
 end

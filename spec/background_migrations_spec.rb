@@ -29,7 +29,6 @@ RSpec.describe BackgroundMigrations do
   end
 
   it "succeeds even if the version already exists in the pending background migrations table" do
-    BackgroundMigrations::PendingMigration.create_table
     BackgroundMigrations::PendingMigration.create!(version: 3)
     expect(BackgroundMigrations::PendingMigration.where(version: 3).count).to eq(1)
     migrate(ManuallyRunBackgroundMigration)
