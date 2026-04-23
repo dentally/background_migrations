@@ -80,7 +80,7 @@ module BackgroundMigrations
       return super if Runner.running
 
       BackgroundMigrations.logger.info("Skipping backgrounded migration #{self.class.name}")
-      PendingMigration.upsert({ version: version }, unique_by: :version)
+      PendingMigration.upsert({ version: version, created_at: Time.current }, unique_by: :version)
     end
   end
 
