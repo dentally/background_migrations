@@ -1,0 +1,10 @@
+# frozen_string_literal: true
+
+class CreateBackgroundMigrationsPendingMigrations < ActiveRecord::Migration<%= migration_version %>
+  def change
+    create_table :background_migrations_pending_migrations, id: false, if_not_exists: true do |t|
+      t.string :version, null: false, index: { unique: true }, primary_key: true
+    end
+    add_column :background_migrations_pending_migrations, :created_at, :datetime, if_not_exists: true
+  end
+end

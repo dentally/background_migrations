@@ -14,6 +14,13 @@ In your Gemfile:
 gem "background_migrations", git: "https://github.com/dentally/background_migrations"
 ```
 
+Then run:
+
+```
+bundle exec rails generate background_migrations:install
+bundle exec rails db:migrate
+```
+
 ## Usage
 
 Within a migration:

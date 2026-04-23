@@ -1,9 +1,26 @@
 # frozen_string_literal: true
 
 require "sqlite3"
+require "erb"
+require "fileutils"
 require "background_migrations"
 
 TestMigration = ActiveRecord::Migration[ActiveRecord.version.to_s.to_f]
+
+install_migration_template = File.expand_path(
+  "../lib/generators/background_migrations/install/templates/create_background_migrations_pending_migrations.rb.erb",
+  __dir__
+)
+generated_install_migration_path = File.expand_path("../tmp/create_background_migrations_pending_migrations.rb", __dir__)
+
+template = ERB.new(File.read(install_migration_template), trim_mode: "-")
+migration_version = "[#{ActiveRecord::VERSION::MAJOR}.#{ActiveRecord::VERSION::MINOR}]"
+rendered_migration = template.result(binding)
+
+FileUtils.mkdir_p(File.dirname(generated_install_migration_path))
+File.write(generated_install_migration_path, rendered_migration)
+load generated_install_migration_path
+
 Dir.glob(File.join(File.dirname(__FILE__), "fixtures", "db", "*.rb")).each { |f| puts "Requiring #{f}"; require f }
 
 BackgroundMigrations.logger = Logger.new(STDOUT)
@@ -22,7 +39,7 @@ RSpec.configure do |config|
 
   config.before(:each) do
     ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-    schema_migration.create_table
+    migrate(CreateBackgroundMigrationsPendingMigrations)
   end
 
   config.include(

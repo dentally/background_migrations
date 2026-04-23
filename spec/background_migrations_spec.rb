@@ -28,8 +28,14 @@ RSpec.describe BackgroundMigrations do
     expect(BackgroundMigrations::PendingMigration.where(version: 3).count).to eq(1)
   end
 
+  it "adds the timestamp to the pending background migrations table" do
+    migrate(ManuallyRunBackgroundMigration)
+    pending_migration = BackgroundMigrations::PendingMigration.find_by(version: 3)
+    expect(pending_migration.created_at).not_to be_nil
+    expect(pending_migration.created_at).to within(1.second).of(Time.current)
+  end
+
   it "succeeds even if the version already exists in the pending background migrations table" do
-    BackgroundMigrations::PendingMigration.create_table
     BackgroundMigrations::PendingMigration.create!(version: 3)
     expect(BackgroundMigrations::PendingMigration.where(version: 3).count).to eq(1)
     migrate(ManuallyRunBackgroundMigration)
