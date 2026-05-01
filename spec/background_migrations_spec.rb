@@ -42,6 +42,30 @@ RSpec.describe BackgroundMigrations do
     expect(BackgroundMigrations::PendingMigration.where(version: 3).count).to eq(1)
   end
 
+  context "when a normal migration is backgrounded" do
+    it "populates the schema_migrations table" do
+      BackgroundMigrations::PendingMigration.move_migration_to_background(1)
+      expect(version_exists?(1)).to be true
+    end
+
+    it "doesn't run the migration" do
+      BackgroundMigrations::PendingMigration.move_migration_to_background(1)
+      migrate(NormalMigration)
+      expect(ActiveRecord::Base.connection.table_exists?(:normal_migrations)).to be false
+    end
+
+    it "runs the migration manually using the Runner" do
+      BackgroundMigrations::PendingMigration.move_migration_to_background(1)
+      BackgroundMigrations::Runner.run("1")
+      expect(ActiveRecord::Base.connection.table_exists?(:normal_migrations)).to be true
+    end
+
+    it "raises an error if it has already been run for real" do
+      migrate(NormalMigration)
+      expect { BackgroundMigrations::PendingMigration.move_migration_to_background(1) }.to raise_error(/Migration has already been run/)
+    end
+  end
+
   it "breaks if a BackgroundMigration defines the change method" do
     create_breaking_migration = proc do
       Class.new(TestMigration) do

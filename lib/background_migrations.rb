@@ -80,11 +80,31 @@ module BackgroundMigrations
       return super if Runner.running
 
       BackgroundMigrations.logger.info("Skipping backgrounded migration #{self.class.name}")
-      PendingMigration.upsert({ version: version, created_at: Time.current }, unique_by: :version)
+      PendingMigration.set_migration_as_background(version)
     end
   end
 
   class PendingMigration < ActiveRecord::Base
     self.table_name = "background_migrations_pending_migrations"
+
+    def self.move_migration_to_background(version)
+      migrated = Set.new(schema_migration.integer_versions)
+      raise "Migration has already been run" if migrated.include?(version.to_i)
+
+      transaction do
+        schema_migration.create_version(version.to_s)
+        set_migration_as_background(version)
+      end
+    end
+
+    def self.set_migration_as_background(version)
+      upsert({ version: version, created_at: Time.current }, unique_by: :version)
+    end
+
+    private
+
+    def self.schema_migration
+      ActiveRecord::Base.connection_pool.schema_migration
+    end
   end
 end
